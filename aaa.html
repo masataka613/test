@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Simple Navi</title>
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+
+    <style>
+        body {
+            margin: 0;
+        }
+
+        #map {
+            height: 100vh;
+        }
+
+        .info {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: white;
+            padding: 10px;
+            z-index: 999;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="info">
+        📍 地図をクリックで目的地
+    </div>
+
+    <div id="map"></div>
+
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+    <script>
+
+        const map = L.map('map').setView([35.681236, 139.767125], 13);
+
+        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap'
+        }).addTo(map);
+
+        let userLatLng;
+        let routeLine;
+
+        // 現在地
+        navigator.geolocation.getCurrentPosition((pos) => {
+
+            userLatLng = [
+                pos.coords.latitude,
+                pos.coords.longitude
+            ];
+
+            L.marker(userLatLng)
+                .addTo(map)
+                .bindPopup("現在地")
+                .openPopup();
+
+            map.setView(userLatLng, 15);
+        });
+
+        // 目的地クリック
+        map.on('click', function (e) {
+
+            const dest = [e.latlng.lat, e.latlng.lng];
+
+            L.marker(dest)
+                .addTo(map)
+                .bindPopup("目的地")
+                .openPopup();
+
+            // 古い線削除
+            if (routeLine) {
+                map.removeLayer(routeLine);
+            }
+
+            // 仮ナビ線（直線）
+            routeLine = L.polyline([
+                userLatLng,
+                dest
+            ], {
+                color: 'blue',
+                weight: 5
+            }).addTo(map);
+
+            // 音声ナビ
+            const speech = new SpeechSynthesisUtterance(
+                "Destination selected"
+            );
+
+            speech.lang = "en-US";
+
+            speechSynthesis.speak(speech);
+        });
+
+    </script>
+
+</body>
+
+</html>
